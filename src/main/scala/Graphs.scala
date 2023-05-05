@@ -6,33 +6,43 @@ object Graphs {
         val sc = new SparkContext(sparkConf) // create spark context
 
         val inputFile = "input/web-Stanford.txt"
-//        val inputFile = "input/text.txt"
 
+        // Διάβασμα του αρχείου, αγνοώντας τις γραμμές που ξεκινάνε με #
         val graph = sc.textFile(inputFile)
             .filter(!_.startsWith("#"))
 
+        // Ανάγνωση των ακμών του γράφου και δημιουργία του RDD
         val edges = graph.map(line => {
             val fields = line.split("\t")
             (fields(0).toInt, fields(1).toInt)
         })
 
-        println("Κόμβοι με τις περισσότερες εισερχόμενες ακμές")
-
         // Μέτρηση εισερχόμενων ακμών για κάθε κόμβο και εκτύπωση των 10 πρώτων
-        val inDegrees = edges.map(edge => (edge._2, 1))
-            .reduceByKey(_ + _)
-            .sortBy(_._2, ascending = false)
+        val inDegrees = edges.map(edge => (edge._2, 1)) // Δημιουργία λίστας με key τον κόμβο που καταλήγει η ακμή και value 1
+            .reduceByKey(_ + _)     // Άθροιση των εμφανίσεων του κόμβου
+            .sortBy(_._2, ascending = false)    // Ταξινόμηση με βάση το value
+
+        println("Κόμβοι με τις περισσότερες εισερχόμενες ακμές")
 
         inDegrees.take(10).foreach(println)
 
-        println("Κόμβοι με τις περισσότερες εξερχόμενες ακμές")
-
         // Μέτρηση εξερχόμενων ακμών για κάθε κόμβο και εκτύπωση των 10 πρώτων
-        val outDegrees = edges.map(edge => (edge._1, 1))
-            .reduceByKey(_ + _)
-            .sortBy(_._2, ascending = false)
+        val outDegrees = edges.map(edge => (edge._1, 1))    // Δημιουργία λίστας με key τον κόμβο που ξεκινά η ακμή και value 1
+            .reduceByKey(_ + _)   // Άθροιση των εμφανίσεων του κόμβου
+            .sortBy(_._2, ascending = false)    // Ταξινόμηση με βάση το value
+
+        println("Κόμβοι με τις περισσότερες εξερχόμενες ακμές")
 
         outDegrees.take(10).foreach(println)
 
+        // Μέτρηση εισερχόμενων και εξερχόμενων (συνολικά) ακμών για κάθε κόμβο και εκτύπωση των 10 πρώτων
+        // Δημιουργία λίστας με τα δύο ζεύγη key-value (για κάθε κόμβο της ακμής). Τα δύο ζεύγη τοποθετούνται στη σειρά
+        val degrees = edges.flatMap(edge => List((edge._1, 1), (edge._2, 1)))
+            .reduceByKey(_ + _)  // Άθροιση των εμφανίσεων του κόμβου
+            .sortBy(_._2, ascending = false)    // Ταξινόμηση με βάση το value
+
+        println("Κόμβοι με τις περισσότερες συνολικές ακμές")
+
+        degrees.take(10).foreach(println)
     }
 }
