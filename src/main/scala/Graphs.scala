@@ -39,10 +39,15 @@ object Graphs {
         // Δημιουργία λίστας με τα δύο ζεύγη key-value (για κάθε κόμβο της ακμής). Τα δύο ζεύγη τοποθετούνται στη σειρά
         val degrees = edges.flatMap(edge => List((edge._1, 1), (edge._2, 1)))
             .reduceByKey(_ + _)  // Άθροιση των εμφανίσεων του κόμβου
-            .sortBy(_._2, ascending = false)    // Ταξινόμηση με βάση το value
 
-        println("Κόμβοι με τις περισσότερες συνολικές ακμές")
+        // Υπολογισμός μέσου όρου του πλήθους των ακμών
+        val avg = degrees.map(_._2).mean()
 
-        degrees.take(10).foreach(println)
+        println(f"\nΜέσος όρος ακμών: $avg%.2f")
+
+        // Υπολογισμός του πλήθους των κόμβων που έχουν περισσότερες (ή ίσες) από avg ακμές
+        val moreThanAvg = degrees.filter(_._2 >= avg).count()
+
+        println(f"\nΠλήθος κόμβων με περισσότερες από $avg%.2f ακμές: $moreThanAvg")
     }
 }
